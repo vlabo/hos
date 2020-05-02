@@ -3,13 +3,9 @@
 // Copyright (c) 2020 Vladimir Stoilov <vladimir.stoilov@protonmail.com>
 
 const uart = @import("uart.zig");
-const c = @cImport(@cInclude("uart.h"));
-const mbox = @import("mbox.zig");
 
 export fn main() noreturn {
     uart.init();
-    // c.uart_init();
-    // c.uart_puts(
     uart.puts(
         \\
         \\ In Penny Lane there is a barber showing photographs
@@ -58,7 +54,7 @@ export fn main() noreturn {
     );
 
     while(true) {
-        //uart.send(uart.getc());
+        uart.send(uart.getc());
     }
 
 }
