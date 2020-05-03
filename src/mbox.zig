@@ -2,57 +2,77 @@
 //
 // Copyright (c) 2020 Vladimir Stoilov <vladimir.stoilov@protonmail.com>
 
+/// https://github.com/raspberrypi/firmware/wiki/Mailbox-property-interface
+
+
 const mmio = @import("mmio.zig");
+const arm = @import("arm.zig");
 
-const VIDEOCORE_MBOX    = mmio.BASE+0x0000B880;
-const MBOX_READ         = VIDEOCORE_MBOX+0x0;
-const MBOX_POLL         = VIDEOCORE_MBOX+0x10;
-const MBOX_SENDER       = VIDEOCORE_MBOX+0x14;
-const MBOX_STATUS       = VIDEOCORE_MBOX+0x18;
-const MBOX_CONFIG       = VIDEOCORE_MBOX+0x1C;
-const MBOX_WRITE        = VIDEOCORE_MBOX+0x20;
-const MBOX_RESPONSE     = 0x80000000;
-const MBOX_FULL         = 0x80000000;
-const MBOX_EMPTY        = 0x40000000;
+const VideocoreMbox = struct {
+    read: u32,
+    reserved1: [12]u8,
+    poll: u32,
+    sender: u32,
+    status: u32,
+    config: u32,
+    write: u32,
 
+    fn is_empty(self: *volatile VideocoreMbox) bool {
+        return self.status & 0x40000000 != 0;
+    }
+
+    fn is_full(self: *volatile VideocoreMbox) bool {
+        return self.status & 0x80000000 != 0;
+    }
+};
 
 pub const MBOX_REQUEST  = 0;
 
-// channels
-pub const MBOX_CH_POWER =   0;
-pub const MBOX_CH_FB    =   1;
-pub const MBOX_CH_VUART =   2;
-pub const MBOX_CH_VCHIQ =   3;
-pub const MBOX_CH_LEDS  =   4;
-pub const MBOX_CH_BTNS  =   5;
-pub const MBOX_CH_TOUCH =   6;
-pub const MBOX_CH_COUNT =   7;
-pub const MBOX_CH_PROP  =   8;
+pub const Channel = enum(u8) {
+    power = 0,
+    fb = 1,
+    vuart = 2,
+    vchiq = 3,
+    leds = 4,
+    btns = 5,
+    touch = 6,
+    count = 7,
+    prop = 8,
+};
 
-// tags 
-pub const MBOX_TAG_GETSERIAL =      0x10004;
-pub const MBOX_TAG_SETCLKRATE =     0x38002;
-pub const MBOX_TAG_LAST =           0;
+pub const Tag = enum(u32) {
+    get_serial = 0x10004,
+    set_clk_rate = 0x38002,
+    last = 0,
+
+    fn to_int(self: Tag) u32 {
+        return @enumToInt(self);
+    }
+};
 
 pub export var data: [36]u32 align(16) = undefined; 
 
-pub fn call(ch: u8) bool {
+var mbox align(32) = @intToPtr(*volatile VideocoreMbox, mmio.VIDEO_CORE_MAILBOX);
+
+pub fn call(channel: Channel) bool {
     var f: usize = 0xF;
     var add: usize = @intCast(usize, @ptrToInt(&data)) & ~f;
-    var r: usize = add | (ch&0xF);
-    //var r: c_uint = ((@bitCast(c_uint, @truncate(c_uint, (@intCast(c_ulong, @ptrToInt(&data))))) & @bitCast(c_uint, ~@as(c_int, 15))) | @bitCast(c_uint, (@bitCast(c_int, @as(c_uint, ch)) & @as(c_int, 15))));
-    while((mmio.read(MBOX_STATUS) & MBOX_FULL) != 0) {
-        asm volatile("nop");
+    var r: usize = add | (@enumToInt(channel)&0xF);
+
+    while(mbox.is_full()) {
+        arm.nop();
     }
-    mmio.write(MBOX_WRITE, @intCast(u32, r));
+    
+    mbox.write = @intCast(u32, r);
+
     while(true) {
         var a = true;
-        while(a) {
-            asm volatile("nop");
-            a = (mmio.read(MBOX_STATUS) & MBOX_EMPTY) != 0;
+        while(mbox.is_empty()) {
+            arm.nop();
         }
-        if(r == mmio.read(MBOX_READ)) {
-            return data[1] == MBOX_RESPONSE;
+
+        if(r == mbox.read) {
+            return data[1] == 0x80000000;
         }
     }
 

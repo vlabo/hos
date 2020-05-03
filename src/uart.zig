@@ -23,14 +23,20 @@ pub fn init() void {
     // set up clock for consistent divisor values 
     mbox.data[0] = 9*4;
     mbox.data[1] = mbox.MBOX_REQUEST;
-    mbox.data[2] = mbox.MBOX_TAG_SETCLKRATE; // set clock rate
+    mbox.data[2] = mbox.Tag.set_clk_rate.to_int(); // set clock rate
     mbox.data[3] = 12;
     mbox.data[4] = 8;
     mbox.data[5] = 2;           // UART clock
     mbox.data[6] = 4000000;     // 4Mhz
     mbox.data[7] = 0;           // clear turbo
-    mbox.data[8] = mbox.MBOX_TAG_LAST;
-    var success = mbox.call(mbox.MBOX_CH_PROP);
+    mbox.data[8] = mbox.Tag.last.to_int();
+    var success = mbox.call(mbox.Channel.prop);
+
+    if(success) {
+        qputs("MBOX success!\n");
+    } else {
+        qputs("MBOX faild!\n");
+    }
 
     var pins = [_]u8{14, 15};
     gpio.set_pins_mode(&pins, gpio.Mode.alt0);

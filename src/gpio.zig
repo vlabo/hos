@@ -83,7 +83,7 @@ pub const Mode = enum {
     }
 };
 
-var gpio align(32) = @intToPtr(*volatile GPIO, mmio.BASE+0x00200000);
+var gpio align(32) = @intToPtr(*volatile GPIO, mmio.GPIO);
 
 pub fn set_pins_mode(pins: []u8, mode: Mode) void {
     if(pins.len <= 0) {
