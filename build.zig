@@ -21,6 +21,8 @@ pub fn build(b: *Builder) !void {
     // kernel.strip = true;
 
     const qemu = b.step("qemu", "Run the OS in qemu");
+    const upload = b.step("upload", "Upload the kernel");
+
     var qemu_args = std.ArrayList([]const u8).init(b.allocator);
     try qemu_args.appendSlice(&[_][]const u8{
         "qemu-system-aarch64",
@@ -35,10 +37,23 @@ pub fn build(b: *Builder) !void {
         "-display",
         "none",
     });
-
     const run_qemu = b.addSystemCommand(qemu_args.items);
     qemu.dependOn(&run_qemu.step);
 
-    run_qemu.step.dependOn(&kernel.step);    
+
+    var upload_args = std.ArrayList([]const u8).init(b.allocator);
+    try upload_args.appendSlice(&[_][]const u8{
+        "kernel_uploader",
+        "/dev/tty.SLAB_USBtoUART",
+        "./zig-cache/bin/kernel.img",
+    });
+
+    const run_upload = b.addSystemCommand(upload_args.items);
+    upload.dependOn(&run_upload.step);
+
+
+
+    run_qemu.step.dependOn(&kernel.step);
+    run_upload.step.dependOn(&kernel.step);
     b.default_step.dependOn(&kernel.step);
 }
