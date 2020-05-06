@@ -35,9 +35,12 @@ pub const Uart = struct {
 
     pub const Error = error {
         failed_to_write,
+        failed_to_read,
     };
 
     pub const OutStream = io.OutStream(Uart, Error, Uart.puts);
+    pub const InStream = io.InStream(Uart, Error, Uart.gets);
+
     const Self = @This();
 
     pub fn new() Self {
@@ -89,21 +92,35 @@ pub const Uart = struct {
         return string.len;
     }
 
+    pub fn gets(self: Self, buffer: []u8) Error!usize {
+        for(buffer) |value, index| {
+            buffer[index] = self.getc();
+        }
+
+        return buffer.len;
+    }
+
     pub fn getc(self: Self) u8 {
         while ((self.registers.flag_reg & 0x10) != 0) {
             asm volatile("nop");
         }
 
-        var c: u8 = self.registers.data_reg;
+        var c: u8 = @intCast(u8, self.registers.data_reg);
         if(c == '\r') {
             return '\n';
         }
 
+        self.send(c);
+
         return c;
     }
 
-    pub fn get_stream(self: Self) OutStream {
+    pub fn get_out_stream(self: Self) OutStream {
         return OutStream{ .context = self };
+    }
+
+    pub fn get_in_stream(self: Self) InStream {
+        return InStream{ .context = self };
     }
 };
 
