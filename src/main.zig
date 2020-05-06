@@ -2,16 +2,15 @@
 //
 // Copyright (c) 2020 Vladimir Stoilov <vladimir.stoilov@protonmail.com>
 
-const uart = @import("uart.zig");
+const io = @import("io.zig");
 
 export fn main() noreturn {
-    var out = uart.Uart{};
-    out.init();
-    var stream = out.getStream();
-    stream.print("Hello, {}!\n", .{"world"}) catch {};
+    var uart = io.Uart.new();
+    var stream = uart.get_stream();
+    stream.print("Hello, {}! \n", .{"world"}) catch {};
 
     while(true) {
-    //    uart.send(uart.getc());
+        //out.send(out.getc());
     }
 
 }
