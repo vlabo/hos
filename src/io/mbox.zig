@@ -6,7 +6,7 @@
 
 
 const mmio = @import("mmio.zig");
-const arm = @import("arm.zig");
+const arm = @import("../arm.zig");
 
 const VideocoreMbox = struct {
     read: u32,

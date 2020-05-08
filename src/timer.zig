@@ -3,7 +3,7 @@
 // Copyright (c) 2020 Vladimir Stoilov <vladimir.stoilov@protonmail.com>
 
 const arm = @import("arm.zig");
-const mmio = @import("mmio.zig");
+const mmio = @import("io/mmio.zig");
 
 const SYSTMR_LO = (mmio.BASE+0x00003004);
 const SYSTMR_HI = (mmio.BASE+0x00003008);

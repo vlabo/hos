@@ -2,41 +2,47 @@
 //
 // Copyright (c) 2020 Vladimir Stoilov <vladimir.stoilov@protonmail.com>
 
-const io = @import("io.zig");
+const io = @import("cli.zig");
 const timer = @import("timer.zig");
 
 const power = @import("power.zig");
 const std = @import("std");
+const mem = @import("mem.zig");
 const Allocator = std.mem.Allocator;
 
-var heap: [1024 * 4]u8 = undefined;
+const Command = enum {
+    reset,
+    nop,
+};
 
 
-fn concat(allocator: *Allocator, a: []const u8, b: []const u8) ![]u8 {
-    const result = try allocator.alloc(u8, a.len + b.len);
-    std.mem.copy(u8, result, a);
-    std.mem.copy(u8, result[a.len..], b);
-    return result;
+fn process_command(command: []u8) Command {
+    if(std.mem.eql(u8, command, "reset")) {
+        return Command.reset;
+    } else {
+        return Command.nop;
+    }
 }
 
 export fn main() noreturn {
-
-    const allocator = &std.heap.FixedBufferAllocator.init(&heap).allocator;
-
-    io.init_uart();
-    io.out.print("Hello, {}! \n", .{"world"}) catch {};
-    var buffer: [4]u8 = .{0,0,0,0};
-    var line = io.in.readUntilDelimiterAlloc(allocator, '\n', 100) catch undefined;
-    defer allocator.destroy(&line);
-
-    const result = concat(allocator, "command: ", line) catch undefined;
-    defer allocator.destroy(&result);
+    const allocator = &std.heap.FixedBufferAllocator.init(&mem.heap).allocator;
+    var console = io.CLI.new();
     
-    io.out.print("\n{}\n", .{ result }) catch {};
+    var in = console.get_in_stream();
+    var out = console.get_out_stream();
 
-    while(true) {
-        io.out.print("1 sec. \n", .{}) catch {};
-        timer.wait_msec(1000);
+    while (true) {
+        out.print("> ", .{}) catch {};
+        var line = in.readUntilDelimiterAlloc(allocator, '\n', 100) catch undefined;
+        defer allocator.destroy(&line);
+        if (line.len > 0) {
+            switch (process_command(line)) {
+                .reset => { 
+                    out.print("Restarting\n", .{}) catch {};
+                    power.reset();
+                    } ,
+                .nop => out.print("Command '{}' not found.\n", .{line}) catch {},
+            }
+        }
     }
-
 }

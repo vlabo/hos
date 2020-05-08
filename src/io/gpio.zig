@@ -3,7 +3,7 @@
 // Copyright (c) 2020 Vladimir Stoilov <vladimir.stoilov@protonmail.com>
 
 const mmio = @import("mmio.zig");
-const timer = @import("timer.zig");
+const timer = @import("../timer.zig");
 
 const Property = struct {
     first: u32,

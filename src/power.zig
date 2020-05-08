@@ -1,4 +1,4 @@
-const mmio = @import("mmio.zig");
+const mmio = @import("io/mmio.zig");
 
 pub const PM_RSTC         = (mmio.BASE+0x0010001c);
 pub const PM_RSTS         = (mmio.BASE+0x00100020);

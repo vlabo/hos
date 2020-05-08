@@ -2,10 +2,9 @@
 //
 // Copyright (c) 2020 Vladimir Stoilov <vladimir.stoilov@protonmail.com>
 
-const gpio = @import("../gpio.zig");
-const mmio = @import("../mmio.zig");
-const mbox = @import("../mbox.zig");
-const io = @import("std").io;
+const gpio = @import("gpio.zig");
+const mmio = @import("mmio.zig");
+const mbox = @import("mbox.zig");
 
 const Registers = struct {
     data_reg: u32,
@@ -31,22 +30,12 @@ const Registers = struct {
 
 pub const Uart = struct {
 
-    registers: *volatile Registers,
-
-    pub const Error = error {
-        failed_to_write,
-        failed_to_read,
-    };
-
-    pub const OutStream = io.OutStream(Uart, Error, Uart.puts);
-    pub const InStream = io.InStream(Uart, Error, Uart.gets);
+    registers: *volatile Registers = @intToPtr(*volatile Registers, mmio.UART_REGISTERS),
 
     const Self = @This();
 
     pub fn new() Self {
-        var self = Self{
-            .registers = @intToPtr(*volatile Registers, mmio.UART_REGISTERS)
-        };
+        var self = Self{};
         self.init();
         return self;
     }
@@ -83,7 +72,7 @@ pub const Uart = struct {
         self.registers.data_reg = c;
     }
 
-    pub fn puts(self: Self, string: []const u8) Error!usize {
+    pub fn puts(self: Self, string: []const u8) usize {
         for (string) |value| {
             if(value == '\n')
                 self.send('\r');
@@ -92,7 +81,7 @@ pub const Uart = struct {
         return string.len;
     }
 
-    pub fn gets(self: Self, buffer: []u8) Error!usize {
+    pub fn gets(self: Self, buffer: []u8) usize {
         for(buffer) |value, index| {
             buffer[index] = self.getc();
         }
@@ -109,18 +98,8 @@ pub const Uart = struct {
         if(c == '\r') {
             return '\n';
         }
-
-        self.send(c);
-
+        
         return c;
-    }
-
-    pub fn get_out_stream(self: Self) OutStream {
-        return OutStream{ .context = self };
-    }
-
-    pub fn get_in_stream(self: Self) InStream {
-        return InStream{ .context = self };
     }
 };
 
