@@ -3,8 +3,6 @@
 // Copyright (c) 2020 Vladimir Stoilov <vladimir.stoilov@protonmail.com>
 
 /// https://github.com/raspberrypi/firmware/wiki/Mailbox-property-interface
-
-
 const mmio = @import("mmio.zig");
 const arm = @import("../arm.zig");
 
@@ -26,7 +24,7 @@ const VideocoreMbox = struct {
     }
 };
 
-pub const MBOX_REQUEST  = 0;
+pub const MBOX_REQUEST = 0;
 
 pub const Channel = enum(u8) {
     power = 0,
@@ -45,33 +43,33 @@ pub const Tag = enum(u32) {
     set_clk_rate = 0x38002,
     last = 0,
 
-    fn to_int(self: Tag) u32 {
+    pub fn to_int(self: Tag) u32 {
         return @enumToInt(self);
     }
 };
 
-pub export var data: [36]u32 align(16) = undefined; 
+pub export var data: [36]u32 align(16) = undefined;
 
 var mbox align(32) = @intToPtr(*volatile VideocoreMbox, mmio.VIDEO_CORE_MAILBOX);
 
 pub fn call(channel: Channel) bool {
     var f: usize = 0xF;
     var add: usize = @intCast(usize, @ptrToInt(&data)) & ~f;
-    var r: usize = add | (@enumToInt(channel)&0xF);
+    var r: usize = add | (@enumToInt(channel) & 0xF);
 
-    while(mbox.is_full()) {
+    while (mbox.is_full()) {
         arm.nop();
     }
-    
+
     mbox.write = @intCast(u32, r);
 
-    while(true) {
+    while (true) {
         var a = true;
-        while(mbox.is_empty()) {
+        while (mbox.is_empty()) {
             arm.nop();
         }
 
-        if(r == mbox.read) {
+        if (r == mbox.read) {
             return data[1] == 0x80000000;
         }
     }

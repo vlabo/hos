@@ -12,16 +12,16 @@ const Property = struct {
 
     fn enable_pin(self: *volatile Property, pin: u8) void {
         var one: u32 = 1;
-        if(pin < 32) {
+        if (pin < 32) {
             self.first |= (one << @intCast(u5, pin));
         } else {
             self.second |= (one << @intCast(u5, pin - 32));
-        }   
+        }
     }
 
     fn disable_pin(self: *volatile Property, pin: u8) void {
         var one: u32 = 1;
-        if(pin < 32) {
+        if (pin < 32) {
             self.first |= ~(one << @intCast(u5, pin));
         } else {
             self.second |= ~(one << @intCast(u5, pin - 32));
@@ -36,7 +36,8 @@ const Property = struct {
 
 /// Reference: https://www.raspberrypi.org/app/uploads/2012/02/BCM2835-ARM-Peripherals.pdf
 const GPIO = struct {
-    functions: [6]u32,  reserved1: u64,
+    functions: [6]u32,
+    reserved1: u64,
     output_set: Property,
     output_clear: Property,
     pin_level: Property,
@@ -69,14 +70,14 @@ const GPIO = struct {
 };
 
 pub const Mode = enum {
-    input = 0b000,   // GPIO Pin is an input
-    output = 0b001,  // GPIO Pin is an output
-    alt0 = 0b100,    // GPIO Pin takes alternate function 0
-    alt1 = 0b101,    // GPIO Pin takes alternate function 1
-    alt2 = 0b110,    // GPIO Pin takes alternate function 2
-    alt3 = 0b111,    // GPIO Pin takes alternate function 3
-    alt4 = 0b011,    // GPIO Pin takes alternate function 4
-    alt5 = 0b010,    // GPIO Pin takes alternate function 5 
+    input = 0b000, // GPIO Pin is an input
+    output = 0b001, // GPIO Pin is an output
+    alt0 = 0b100, // GPIO Pin takes alternate function 0
+    alt1 = 0b101, // GPIO Pin takes alternate function 1
+    alt2 = 0b110, // GPIO Pin takes alternate function 2
+    alt3 = 0b111, // GPIO Pin takes alternate function 3
+    alt4 = 0b011, // GPIO Pin takes alternate function 4
+    alt5 = 0b010, // GPIO Pin takes alternate function 5
 
     fn to_number(self: Mode) u32 {
         return @enumToInt(self);
@@ -86,18 +87,18 @@ pub const Mode = enum {
 var gpio align(32) = @intToPtr(*volatile GPIO, mmio.GPIO);
 
 pub fn set_pins_mode(pins: []u8, mode: Mode) void {
-    if(pins.len <= 0) {
+    if (pins.len <= 0) {
         return;
     }
-    
-    for(pins) |pin| {
+
+    for (pins) |pin| {
         gpio.set_pin_mode(pin, mode);
     }
-    
+
     gpio.pull_up_down = 0;
     timer.wait_for_cicles(150);
 
-    for(pins) |pin| {
+    for (pins) |pin| {
         gpio.pull_up_down_clock.enable_pin(pin);
     }
     timer.wait_for_cicles(150);
@@ -105,6 +106,6 @@ pub fn set_pins_mode(pins: []u8, mode: Mode) void {
 }
 
 pub fn set_pin_mode(pin: u8, ode: Mode) void {
-    var pins = [_]u8 {pin};
+    var pins = [_]u8{pin};
     set_pins_mode(&pins, mode);
 }

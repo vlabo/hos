@@ -17,9 +17,7 @@ pub const CLI = struct {
     pub const InStream = io.InStream(Self, Error, Self.get_string);
 
     pub fn new() Self {
-        return Self{
-            .uart =  Uart.new()
-        };
+        return Self{ .uart = Uart.new() };
     }
 
     fn put_string(self: Self, string: []const u8) Error!usize {
@@ -29,6 +27,9 @@ pub const CLI = struct {
     fn get_string(self: Self, buffer: []u8) Error!usize {
         for (buffer) |value, index| {
             var char = self.uart.getc();
+            if (char == 8) {
+                self.uart.send('b');
+            }
             buffer[index] = char;
             self.uart.send(char);
         }

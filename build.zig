@@ -11,7 +11,6 @@ pub fn build(b: *Builder) !void {
     };
     
     const kernel = b.addExecutable("kernel", "src/main.zig");
-    kernel.addAssemblyFile("src/start.S");
     kernel.setTarget(target);
     kernel.setLinkerScriptPath("linker.ld");
     kernel.setOutputDir("zig-cache");
