@@ -37,7 +37,7 @@ const Property = struct {
 /// Reference: https://www.raspberrypi.org/app/uploads/2012/02/BCM2835-ARM-Peripherals.pdf
 const GPIO = struct {
     functions: [6]u32,
-    reserved1: u64,
+    reserved1: u32,
     output_set: Property,
     output_clear: Property,
     pin_level: Property,
@@ -105,7 +105,56 @@ pub fn set_pins_mode(pins: []u8, mode: Mode) void {
     gpio.pull_up_down_clock.clear();
 }
 
-pub fn set_pin_mode(pin: u8, ode: Mode) void {
+pub fn set_pin_mode(pin: u8, mode: Mode) void {
     var pins = [_]u8{pin};
     set_pins_mode(&pins, mode);
+}
+
+pub fn output_set(pin: u8, on: bool) void {
+    if(on) {
+        gpio.output_set.enable_pin(pin);
+    } else {
+        gpio.output_set.disable_pin(pin);
+    }
+}
+
+test "gpio registers" {
+    const expectEqual = @import("std").testing.expectEqual;
+    var registers = @intToPtr(*GPIO, 0x10000000);
+    expectEqual(@as(usize, 0x10000000), @ptrToInt(&registers.functions));
+
+    expectEqual(@as(usize, 0x1000001C), @ptrToInt(&registers.output_set.first));
+    expectEqual(@as(usize, 0x10000020), @ptrToInt(&registers.output_set.second));
+
+    expectEqual(@as(usize, 0x10000028), @ptrToInt(&registers.output_clear.first));
+    expectEqual(@as(usize, 0x1000002C), @ptrToInt(&registers.output_clear.second));
+
+    expectEqual(@as(usize, 0x10000034), @ptrToInt(&registers.pin_level.first));
+    expectEqual(@as(usize, 0x10000038), @ptrToInt(&registers.pin_level.second));
+
+    expectEqual(@as(usize, 0x10000040), @ptrToInt(&registers.event_detect_system.first));
+    expectEqual(@as(usize, 0x10000044), @ptrToInt(&registers.event_detect_system.second));
+
+    expectEqual(@as(usize, 0x1000004C), @ptrToInt(&registers.rising_edgne_detect.first));
+    expectEqual(@as(usize, 0x10000050), @ptrToInt(&registers.rising_edgne_detect.second));
+
+    expectEqual(@as(usize, 0x10000058), @ptrToInt(&registers.falling_edge_detect.first));
+    expectEqual(@as(usize, 0x1000005C), @ptrToInt(&registers.falling_edge_detect.second));
+
+    expectEqual(@as(usize, 0x10000064), @ptrToInt(&registers.high_detect.first));
+    expectEqual(@as(usize, 0x10000068), @ptrToInt(&registers.high_detect.second));
+
+    expectEqual(@as(usize, 0x10000070), @ptrToInt(&registers.low_detect.first));
+    expectEqual(@as(usize, 0x10000074), @ptrToInt(&registers.low_detect.second));
+
+    expectEqual(@as(usize, 0x1000007C), @ptrToInt(&registers.async_rising_edge.first));
+    expectEqual(@as(usize, 0x10000080), @ptrToInt(&registers.async_rising_edge.second));
+    
+    expectEqual(@as(usize, 0x10000088), @ptrToInt(&registers.async_falling_edge.first));
+    expectEqual(@as(usize, 0x1000008C), @ptrToInt(&registers.async_falling_edge.second));
+
+    expectEqual(@as(usize, 0x10000094), @ptrToInt(&registers.pull_up_down));
+
+    expectEqual(@as(usize, 0x10000098), @ptrToInt(&registers.pull_up_down_clock.first));
+    expectEqual(@as(usize, 0x1000009C), @ptrToInt(&registers.pull_up_down_clock.second));
 }

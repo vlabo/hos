@@ -2,7 +2,8 @@
 //
 // Copyright (c) 2020 Vladimir Stoilov <vladimir.stoilov@protonmail.com>
 
-const io = @import("cli.zig");
+const cli = @import("cli.zig");
+const io = @import("io.zig");
 const timer = @import("timer.zig");
 
 const power = @import("power.zig");
@@ -53,19 +54,29 @@ noinline fn setup() noreturn {
 
 fn main() noreturn {
     const allocator = &std.heap.FixedBufferAllocator.init(&mem.heap).allocator;
-    var console = io.CLI.new();
+    var console = cli.CLI.new();
 
     var in = console.get_in_stream();
     var out = console.get_out_stream();
 
     out.print("\n", .{}) catch{};
-
-    while (true) {
-        out.print("> ", .{}) catch {};
-        var line = in.readUntilDelimiterAlloc(allocator, '\n', 100) catch undefined;
-        defer allocator.destroy(&line);
-        if (line.len > 0) {
-            out.print("{}\n", .{parse_command(line).to_string()}) catch {};
-        }
+    
+    io.gpio.set_pin_mode(17, io.gpio.Mode.output);
+    
+    var state = false;
+    while(true) {
+        io.gpio.output_set(17, state);
+        timer.wait_msec(1000);
+        out.print("Pin 17: {}\n", .{state}) catch {};
+        state = !state;
     }
+
+    // while (true) {
+        // out.print("> ", .{}) catch {};
+        // var line = in.readUntilDelimiterAlloc(allocator, '\n', 100) catch undefined;
+        // defer allocator.destroy(&line);
+        // if (line.len > 0) {
+            // out.print("{}\n", .{parse_command(line).to_string()}) catch {};
+        // }
+    // }
 }

@@ -130,12 +130,12 @@ pub fn uart_hex(d: u32) void {
 test "uart registers" {
     const expectEqual = @import("std").testing.expectEqual;
     var addr = @intToPtr(*Registers, 0x10000000);
-    expectEqual(@ptrToInt(&addr.data_reg), 0x10000000);
-    expectEqual(@ptrToInt(&addr.flag_reg), 0x10000018);
-    expectEqual(@ptrToInt(&addr.integer_bound_rate_divisor), 0x10000024);
-    expectEqual(@ptrToInt(&addr.fractal_bound_rate_divisor), 0x10000028);
-    expectEqual(@ptrToInt(&addr.line_control_reg), 0x1000002C);
-    expectEqual(@ptrToInt(&addr.control_reg), 0x10000030);
-    expectEqual(@ptrToInt(&addr.interupt_mask_clear_reg), 0x10000038);
-    expectEqual(@ptrToInt(&addr.interupt_clear_reg), 0x10000044);
+    expectEqual(@as(usize, 0x10000000), @ptrToInt(&addr.data_reg));
+    expectEqual(@as(usize, 0x10000018), @ptrToInt(&addr.flag_reg));
+    expectEqual(@as(usize, 0x10000024), @ptrToInt(&addr.integer_bound_rate_divisor));
+    expectEqual(@as(usize, 0x10000028), @ptrToInt(&addr.fractal_bound_rate_divisor));
+    expectEqual(@as(usize, 0x1000002C), @ptrToInt(&addr.line_control_reg));
+    expectEqual(@as(usize, 0x10000030), @ptrToInt(&addr.control_reg));
+    expectEqual(@as(usize, 0x10000038), @ptrToInt(&addr.interupt_mask_clear_reg));
+    expectEqual(@as(usize, 0x10000044), @ptrToInt(&addr.interupt_clear_reg));
 }

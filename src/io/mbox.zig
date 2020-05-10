@@ -80,10 +80,10 @@ pub fn call(channel: Channel) bool {
 test "mbox registers" {
     const expectEqual = @import("std").testing.expectEqual;
     var registers = @intToPtr(*VideocoreMbox, 0x10000000);
-    expectEqual(@ptrToInt(&registers.read), 0x10000000);
-    expectEqual(@ptrToInt(&registers.poll), 0x10000010);
-    expectEqual(@ptrToInt(&registers.sender), 0x10000014);
-    expectEqual(@ptrToInt(&registers.status), 0x10000018);
-    expectEqual(@ptrToInt(&registers.config), 0x1000001C);
-    expectEqual(@ptrToInt(&registers.write), 0x10000020);
+    expectEqual(@as(usize, 0x10000000), @ptrToInt(&registers.read));
+    expectEqual(@as(usize, 0x10000010), @ptrToInt(&registers.poll));
+    expectEqual(@as(usize, 0x10000014), @ptrToInt(&registers.sender));
+    expectEqual(@as(usize, 0x10000018), @ptrToInt(&registers.status));
+    expectEqual(@as(usize, 0x1000001C), @ptrToInt(&registers.config));
+    expectEqual(@as(usize, 0x10000020), @ptrToInt(&registers.write));
 }
