@@ -15,8 +15,12 @@ pub inline fn wfi() void {
 }
 
 pub inline fn get_cpu_id() usize {
-    return asm volatile ("mrs x1, mpidr_el1"
-        : [ret] "={x1}" (-> usize)
+    return get_system_value("mpidr_el1");
+}
+
+pub inline fn get_system_value(comptime name: []const u8) usize {
+    return asm volatile ("mrs %[value], " ++ name
+        : [value] "=r" (-> usize)
     );
 }
 

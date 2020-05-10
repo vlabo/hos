@@ -17,21 +17,13 @@ pub fn wait_for_cicles(cicles: usize) void {
 }
 
 pub fn wait_msec(msec: u32) void {
-    var freq: usize = asm volatile ("mrs x1, cntfrq_el0"
-        : [ret] "={x1}" (-> usize)
-    );
-
-    var start_time: usize = asm volatile ("mrs x2, cntpct_el0"
-        : [ret] "={x2}" (-> usize)
-    );
+    const freq = arm.get_system_value("cntfrq_el0");
+    const start_time = arm.get_system_value("cntpct_el0");
 
     var end_time = start_time + ((freq / 1000) * msec);
 
     while (true) {
-        var current_time = asm volatile ("mrs x3, cntpct_el0"
-            : [ret] "={x3}" (-> usize)
-        );
-
+        var current_time = arm.get_system_value("cntpct_el0");
         if (current_time >= end_time) {
             break;
         }
