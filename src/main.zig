@@ -2,7 +2,7 @@
 //
 // Copyright (c) 2020 Vladimir Stoilov <vladimir.stoilov@protonmail.com>
 
-const cli = @import("cli.zig");
+const cli = @import("console.zig").CLI;
 const io = @import("io.zig");
 const timer = @import("timer.zig");
 
@@ -36,25 +36,10 @@ fn parse_command(command: []u8) Command {
     }
 }
 
-export fn _start() noreturn {
-    if(arm.get_cpu_id() & 0x3 != 0) {
-        arm.wfi();
-    }
-    asm volatile (
-        \\ ldr     x1, =_start
-        \\ mov     sp, x1
-    );
-    setup();
-}
-
-noinline fn setup() noreturn {
+pub fn main() noreturn {
     mem.init();
-    main();
-}
-
-fn main() noreturn {
     const allocator = &std.heap.FixedBufferAllocator.init(&mem.heap).allocator;
-    var console = cli.CLI.new();
+    var console = cli.new();
 
     var in = console.get_in_stream();
     var out = console.get_out_stream();

@@ -1,2 +1,2 @@
-pub const Uart = @import("io/uart.zig").Uart;
-pub const gpio = @import("io/gpio.zig");
+pub const Uart = @import("arm/io/uart.zig").Uart;
+pub const gpio = @import("arm/io/gpio.zig");

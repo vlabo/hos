@@ -4,7 +4,7 @@
 
 /// https://github.com/raspberrypi/firmware/wiki/Mailbox-property-interface
 const mmio = @import("mmio.zig");
-const arm = @import("../arm.zig");
+const cpu = @import("../../cpu.zig").Current;
 
 const VideocoreMbox = struct {
     read: u32,
@@ -58,7 +58,7 @@ pub fn call(channel: Channel) bool {
     var r: usize = add | (@enumToInt(channel) & 0xF);
 
     while (mbox.is_full()) {
-        arm.nop();
+        cpu.nop();
     }
 
     mbox.write = @intCast(u32, r);
@@ -66,7 +66,7 @@ pub fn call(channel: Channel) bool {
     while (true) {
         var a = true;
         while (mbox.is_empty()) {
-            arm.nop();
+            cpu.nop();
         }
 
         if (r == mbox.read) {

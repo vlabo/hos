@@ -2,26 +2,18 @@
 //
 // Copyright (c) 2020 Vladimir Stoilov <vladimir.stoilov@protonmail.com>
 
-pub inline fn nop() void {
-    asm volatile ("nop");
-}
+const main = @import("main.zig");
+const cpu = @import("cpu.zig").Current;
 
-pub inline fn wfe() void {
-    asm volatile("wfe");
-}
-
-pub inline fn wfi() void {
-    asm volatile("wfi");
-}
-
-pub inline fn get_cpu_id() usize {
-    return get_system_value("mpidr_el1");
-}
-
-pub inline fn get_system_value(comptime name: []const u8) usize {
-    return asm volatile ("mrs %[value], " ++ name
-        : [value] "=r" (-> usize)
+/// Entry point
+export fn _start() noreturn {
+    if(cpu.get_cpu_id() & 0x3 != 0) {
+        cpu.wfi();
+    }
+    asm volatile (
+        \\ ldr     x1, =_start
+        \\ mov     sp, x1
     );
+    main.main();
 }
-
 

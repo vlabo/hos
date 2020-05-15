@@ -10,7 +10,7 @@ pub fn build(b: *Builder) !void {
         .cpu_model = .{ .explicit = &std.Target.aarch64.cpu.cortex_a53 },
     };
     
-    const kernel = b.addExecutable("kernel", "src/main.zig");
+    const kernel = b.addExecutable("kernel", "src/arm.zig");
     kernel.setTarget(target);
     kernel.setLinkerScriptPath("linker.ld");
     kernel.setOutputDir("zig-cache");

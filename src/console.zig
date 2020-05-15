@@ -1,7 +1,5 @@
-const Uart = @import("io/uart.zig").Uart;
+const Uart = @import("arm/io/uart.zig").Uart;
 const io = @import("std").io;
-
-const qputs = @import("io/uart.zig").qputs;
 
 pub const CLI = struct {
     uart: Uart = undefined,
@@ -27,9 +25,6 @@ pub const CLI = struct {
     fn get_string(self: Self, buffer: []u8) Error!usize {
         for (buffer) |value, index| {
             var char = self.uart.getc();
-            if (char == 8) {
-                self.uart.send('b');
-            }
             buffer[index] = char;
             self.uart.send(char);
         }
